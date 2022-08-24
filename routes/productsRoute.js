@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/", (req, res) => {
   try {
-    const query = `SELECT * FROM products`;
+    const query = `select * from products`;
 
     connection.query(query, (err, results) => {
       res.json({
@@ -23,7 +23,7 @@ router.get("/", (req, res) => {
 
 router.get("/:id", (req, res) => {
   try {
-    const query = `SELECT * FROM products WHERE id = ?`;
+    const query = `select * from products where id = ?`;
 
     connection.query(query, [req.params.id],(err, results) => {
       res.json({
@@ -63,6 +63,10 @@ con.query(
   ],
   (err,results) =>{
     if(err) throw err;
+    res.status(200).json({
+      results,
+      message: "Added item Successfully"
+    })
   }); 
 }catch (error){
   res.status(400).json({
@@ -73,14 +77,43 @@ con.query(
    
 // Edit id
 router.put("/:id",(req,res)=>{
+  try{
   const strQry = `update products set ? where id = ${reg.params.id}`;
-  const {title, img, catergory, description, price} = req.body
+  const {title, img, catergory, description, price} = req.body;
 
   const product = { 
-    title, catergory, price
+    title,img, catergory,description, price
   }
-  con.query(strQry, product,)
+  con.query(strQry, product,(err, results) => {
+    if (err) throw err;
+    res.status(200).json({
+        results,
+        message : "Updated item Successfully"
+    })
+})
+} catch (error) {
+res.status(400).json({
+  error,
 });
-router
+}});
+
+// delete
+router.delete("/:id", (req, res) => {
+  try {
+      const strQry =`delete from products where id = ${req.params.id}`
+  
+      con.query(strQry, (err, results) => {
+        if (err) throw err;
+        res.status(200).json({
+          results,
+          message : "Item Deleted"
+        })
+      })
+  } catch (error) {
+      res.status(400).json({
+          error,
+        });
+  }
+  });
 
 module.exports = router;
