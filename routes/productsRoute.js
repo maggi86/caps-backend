@@ -1,14 +1,14 @@
 const express = require("express");
+const app = express();
 const bodyparser = require("body-parser");
 const connection = require("../config/dbmysql");
-const bodyParser = require("body-parser");
 const router = express.Router();
 
 router.get("/", (req, res) => {
   try {
-    const query = `select * from products`;
+    const Query = `select * from products`;
 
-    connection.query(query, (err, results) => {
+    connection.query(Query, (err, results) => {
       res.json({
         results: results,
       });
@@ -23,9 +23,9 @@ router.get("/", (req, res) => {
 
 router.get("/:id", (req, res) => {
   try {
-    const query = `select * from products where id = ?`;
+    const Query = `select * from products where id = ?`;
 
-    connection.query(query, [req.params.id],(err, results) => {
+    connection.query(Query, [req.params.id],(err, results) => {
       res.json({
         results: results,
       });
@@ -47,20 +47,11 @@ delete-name says it all
 */
 
 // add products
-router.post("/", bodyParser.json(), (req,res) => {
+router.post("/", bodyparser.json(), (req,res) => {
   try {
   const product = req.body;
-const strQry = `insert into products (id, title, img, catergory, description, price) values(?,?,?,?,?,?)`;
-con.query(
-  strQry,
-  [
-    product.id,
-    product.title,
-    product.img,
-    product.catergory,
-    product.description,
-    product.price
-  ],
+const Query = `insert into products (id, title, img, catergory, description, price) values(?,?,?,?,?,?)`;
+connection.query(Query, [ product.id, product.title, product.img, product.catergory, product.description, product.price],
   (err,results) =>{
     if(err) throw err;
     res.status(200).json({
@@ -69,8 +60,9 @@ con.query(
     })
   }); 
 }catch (error){
-  res.status(400).json({
-    error,
+  res.json({
+    status: 400,
+    error: error,
   });
 }
 });   
@@ -78,13 +70,13 @@ con.query(
 // Edit id
 router.put("/:id",(req,res)=>{
   try{
-  const strQry = `update products set ? where id = ${reg.params.id}`;
+  const Query = `update products set ? where id = ${reg.params.id}`;
   const {title, img, catergory, description, price} = req.body;
 
   const product = { 
     title,img, catergory,description, price
   }
-  con.query(strQry, product,(err, results) => {
+  connection.query(Query, product,(err, results) => {
     if (err) throw err;
     res.status(200).json({
         results,
@@ -92,17 +84,19 @@ router.put("/:id",(req,res)=>{
     })
 })
 } catch (error) {
-res.status(400).json({
-  error,
+  res.json({
+    status: 400,
+    error: error,
+  });
+}
 });
-}});
 
 // delete
 router.delete("/:id", (req, res) => {
   try {
-      const strQry =`delete from products where id = ${req.params.id}`
+      const Query =`delete from products where id = ${req.params.id}`
   
-      con.query(strQry, (err, results) => {
+      connection.query(Query, (err, results) => {
         if (err) throw err;
         res.status(200).json({
           results,
@@ -110,10 +104,11 @@ router.delete("/:id", (req, res) => {
         })
       })
   } catch (error) {
-      res.status(400).json({
-          error,
-        });
-  }
+    res.json({
+      status: 400,
+      error: error,
+    });
+  }                              
   });
 
 module.exports = router;

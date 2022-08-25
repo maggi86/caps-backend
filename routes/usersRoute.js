@@ -5,6 +5,61 @@ const bodyparser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const con = require("../config/dbcon");
 
+
+// user login
+router.patch("/", bodyparser.json(), (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const strQry = `select * from users where email = '${email}'`;
+
+    con.query(strQry, async (err, results) => {
+      if (err) throw err;
+      if (results.length === 0) {
+        res.json({
+          msg: "Email not found",
+        });
+      } else {
+        const isMatch = await compare(password, results[0].password);
+        if (isMatch === true) {
+          const payload = {
+           user : results[0]
+            // user: {
+            //   id: results[0].id,
+            //   username: results[0].username,
+            //   email: results[0].email,
+            //   usertype: results[0].usertype,
+            }
+            jwt.sign(
+                payload,
+                process.env.jwtSecret,
+                {
+                    expiresIn: "365d",
+            },
+            (err, token) => {
+                if (err) throw err;
+                res.json({
+                    msg: "Login Successful",
+                    user: payload.user,
+                    token: token,
+                });
+                // res.json(payload.user);
+            }
+            );
+        // };
+          
+        } else {
+          res.json({
+            msg: "Password Incorrect",
+          });
+        }
+      }
+    });
+  } catch (error) {
+    res.status;
+  }
+});
+
+
 // get all users
 router.get("/", (req, res) => {
   try {
@@ -57,7 +112,7 @@ router.post("/", bodyparser.json(), async (req, res) => {
         });
       } else {
         // adding to table(database)
-        const strQry = `insert into users (username, email, password) VALUES(?, ?, ?);`;
+        const strQry = `insert into users (fname, email, password) VALUES(?, ?, ?);`;
         user.password = await hash(user.password, 5);
         con.query(
           strQry,
@@ -76,59 +131,6 @@ router.post("/", bodyparser.json(), async (req, res) => {
     res.status(400).json({
       error: error,
     });
-  }
-});
-
-// user login
-router.patch("/", bodyparser.json(), (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const strQry = `select * from users where email = '${email}'`;
-
-    con.query(strQry, async (err, results) => {
-      if (err) throw err;
-      if (results.length === 0) {
-        res.json({
-          msg: "Email not found",
-        });
-      } else {
-        const isMatch = await compare(password, results[0].password);
-        if (isMatch === true) {
-          const payload = {
-           user : results[0]
-            // user: {
-            //   id: results[0].id,
-            //   username: results[0].username,
-            //   email: results[0].email,
-            //   usertype: results[0].usertype,
-            }
-            jwt.sign(
-                payload,
-                process.env.jwtSecret,
-                {
-                    expiresIn: "365d",
-            },
-            (err, token) => {
-                if (err) throw err;
-                res.json({
-                    msg: "Login Successful",
-                    user: payload.user,
-                    token: token,
-                });
-                // res.json(payload.user);
-            }
-            );
-        // };
-          
-        } else {
-          res.json({
-            msg: "Password Incorrect",
-          });
-        }
-      }
-    });
-  } catch (error) {
-    res.status;
   }
 });
 
